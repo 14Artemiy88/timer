@@ -1,6 +1,6 @@
 #!/bin/bash
 TIMER_FILE="/run/user/1000/timer.txt"
-PAUSED=false
+PAUSED=0
 
 function timer_stop {
 	# if [[ $1 = true ]]; then
@@ -46,12 +46,7 @@ if [[ $1 != "" ]]; then
 	    read -n 2 -s -t 1
 	    case $REPLY in
 	        ' ')
-				if $PAUSED
-				then
-					PAUSED=false
-				else
-					PAUSED=true
-				fi
+				(( PAUSED = !$PAUSED ))
 	        ;;
 	        '[A')
 				(( finish_time = $finish_time + 60 ))
@@ -66,7 +61,7 @@ if [[ $1 != "" ]]; then
 				(( finish_time = $finish_time - 60 ))
 	        ;;
 	    esac
-		if [[ "$PAUSED" = false ]]; then
+		if [[ "$PAUSED" -eq 0 ]]; then
 			now=$(date '+%s')
 			(( el_t = $finish_time - $now ))
 			timer=$(date -u --date='@'$el_t '+%H:%M:%S')
