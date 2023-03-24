@@ -1,6 +1,10 @@
 # timer
-Console timer
-             ,---.           ,---.
+
+<details>
+  <summary>Console timer</summary>
+
+  ```
+             ,---.           ,---.
             / /"`.\.--"""--./,'"\ \
             \ \    _       _    / /
              `./  / __   __ \  \,'
@@ -26,4 +30,5 @@ Console timer
           ,'   ==.   \    /   .==   `.
          /            )  (            \
          `==========='    `==========='
-
+  ```
+</details>
