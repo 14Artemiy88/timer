@@ -79,14 +79,11 @@ if [[ $1 != "" ]]; then
 		fi
 		if [ "$show_timer" = true ]; then
 			clear
-			# toilet -f 14 ${timer##00:} | boxes -d bear -a hc -p h8
 			toilet -f smblock ${timer##00:} | boxes -d bear -a hc -p h8
 		fi
-		# sleep 1
 	done
 
 	timer_stop
-	# notify-send -i file:///home/artemiy/Apps/timer/mini_D.jpg "$message" > /dev/null
 	echo "$message" | festival --tts --language russian > /dev/null
 	kdialog --imgbox ~/Images/D/100-1/50.jpg --title "$message"
 fi
