@@ -22,10 +22,8 @@ if [[ $1 != "" ]]; then
 	params=( "$@" )
 	for (( i=1; i<=$#; i++ )) do
 		case ${params[$i]} in
-			"-m")
-				message=${params[$i+1]} ;;
-			"-s")
-				show_timer=false
+			"-m") message=${params[$i+1]} ;;
+			"-s") show_timer=false ;;
 		esac
 	done
 	
@@ -45,21 +43,11 @@ if [[ $1 != "" ]]; then
 	do
 	    read -n 2 -s -t 1
 	    case $REPLY in
-	        ' ')
-				(( PAUSED = !$PAUSED ))
-	        ;;
-	        '[A')
-				(( finish_time = $finish_time + 60 ))
-	        ;;
-	        '[B')
-				(( finish_time = $finish_time - 60 ))
-	        ;;
-	        '+')
-				(( finish_time = $finish_time + 60 ))
-	        ;;
-	        '-')
-				(( finish_time = $finish_time - 60 ))
-	        ;;
+	        ' ') (( PAUSED = !$PAUSED )) ;;
+	        '[A') (( finish_time = $finish_time + 60 )) ;;
+	        '[B') (( finish_time = $finish_time - 60 )) ;;
+	        '+') (( finish_time = $finish_time + 60 )) ;;
+	        '-') (( finish_time = $finish_time - 60 )) ;;
 	    esac
 		if [[ "$PAUSED" -eq 0 ]]; then
 			now=$(date '+%s')
