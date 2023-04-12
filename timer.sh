@@ -98,11 +98,11 @@ if [[ -n $1 && $1 =~ ^-?[0-9]+$ ]]; then
     while ((EL_T > 0)); do
         read -n 2 -s -t 1 -r
         case $REPLY in
-        ' ') ((PAUSED = !"$PAUSED")) ;;
-        '[A') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
-        '[B') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
-        '+') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
-        '-') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
+            ' ') ((PAUSED = !"$PAUSED")) ;;
+            '[A') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
+            '[B') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
+            '+') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
+            '-') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
         esac
 
         if [[
