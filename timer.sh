@@ -5,11 +5,10 @@ declare -r GREEN_COLOR="\e[0;32m"
 declare -r YELLOW_COLOR="\e[0;33m"
 
 TIMER_FILE="/run/user/1000/timer.txt"
-PAUSED=0
 
 Help() {
     # Display Help
-    echo "Timer with usage toilet and boxes."
+    echo "Timer with usage toilet with boxes and festival with kdialog."
     echo
     echo -e "${YELLOW_COLOR}USAGE${NORMAL_COLOR}:
     timer MIN [SEC] [OPTIONS]"
@@ -27,9 +26,7 @@ Help() {
 
 timer_stop() {
     if [[ -n $1 && "$1" = true ]]; then
-        clear
-        # toilet -f 14 "всё!" | boxes -d bear -a hc -p h8
-        toilet -f smblock "BCE!" | boxes -d bear -a hc -p h8
+        timer "BCE!"
         rm $TIMER_FILE
         tput cnorm #~ включаем курсор
     else
@@ -37,18 +34,20 @@ timer_stop() {
     fi
 }
 
-check_interval() {
-    if [[ $1 && $(($1 * 60)) == "$3" ]]; then
-        echo "$4 $1 минут" | festival --tts --language russian >/dev/null
-        # kdialog --imgbox ~/Images/D/100-1/50.jpg --title "динь-динь"
-        local new_key=$2 + 1
-        echo "$new_key"
-    fi
+timer() {
+    clear
+    # toilet -f 14 "всё!" | boxes -d bear -a hc -p h8
+    toilet -f smblock "$1" | boxes -d bear -a hc -p h8
+}
+
+say() {
+    echo "$1" | festival --tts --language russian >/dev/null
 }
 
 trap "break; timer_stop; return" SIGINT
 
 if [[ -n $1 && $1 =~ ^-?[0-9]+$ ]]; then
+    PAUSED=0
     MESSAGE="динь-динь"
     SHOW_TIMER=true
     MIN=$1
@@ -106,8 +105,24 @@ if [[ -n $1 && $1 =~ ^-?[0-9]+$ ]]; then
         '-') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
         esac
 
-        check_interval "${LEFT_INTERVALS[$INTERVAL_KEY]}" $INTERVAL_KEY $EL_T "осталось"
-        check_interval "${PASSED_INTERVALS[$PASSED_INTERVA_KEY]}" $PASSED_INTERVA_KEY $(("$FINISH_TIME" - "$EL_T" - "$START_TIME")) "прошло"
+        if [[
+            ${#LEFT_INTERVALS[@]} -ne 0 &&
+            $(( ${LEFT_INTERVALS[$INTERVAL_KEY]} * 60 )) == "$EL_T"
+        ]] ; then
+            say "осталось ${LEFT_INTERVALS[$INTERVAL_KEY]}  минут"
+            # kdialog --imgbox ~/Images/D/100-1/50.jpg --title "динь-динь"
+            unset "LEFT_INTERVALS[INTERVAL_KEY]"
+            (( INTERVAL_KEY = INTERVAL_KEY + 1 ))
+        fi
+        if [[
+            ${#PASSED_INTERVALS[@]} -ne 0 &&
+            $(( ${PASSED_INTERVALS[$PASSED_INTERVA_KEY]} * 60 )) == "$(("$FINISH_TIME" - "$EL_T" - "$START_TIME"))"
+        ]] ; then
+            say "прошло ${PASSED_INTERVALS[$PASSED_INTERVA_KEY]} минут"
+            # kdialog --imgbox ~/Images/D/100-1/50.jpg --title "динь-динь"
+            unset "LEFT_INTERVALS[PASSED_INTERVA_KEY]"
+            (( INTERVAL_KEY = PASSED_INTERVA_KEY+ 1 ))
+        fi
 
         if [[ "$PAUSED" -eq 0 ]]; then
             now=$(date '+%s')
@@ -120,13 +135,13 @@ if [[ -n $1 && $1 =~ ^-?[0-9]+$ ]]; then
             TIMER="PAUSE"
         fi
         if [ "$SHOW_TIMER" = true ]; then
-            clear
-            toilet -f smblock "${TIMER##00:}" | boxes -d bear -a hc -p h8
+            timer "${TIMER##00:}"
         fi
     done
 
     timer_stop $SHOW_TIMER
-    echo "$MESSAGE" | festival --tts --language russian >/dev/null
+    say "$MESSAGE"
+#    echo "$MESSAGE" | festival --tts --language russian >/dev/null
     kdialog --imgbox ~/Images/D/100-1/50.jpg --title "$MESSAGE"
 else
     Help
