@@ -3,8 +3,7 @@
 declare -r NORMAL_COLOR="\e[0;39m"
 declare -r GREEN_COLOR="\e[0;32m"
 declare -r YELLOW_COLOR="\e[0;33m"
-
-TIMER_FILE="/run/user/1000/timer.txt"
+declare -r TIMER_FILE="/run/user/1000/timer.txt"
 
 Help() {
     # Display Help
