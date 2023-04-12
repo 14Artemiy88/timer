@@ -32,3 +32,13 @@
          `==========='    `==========='
   ```
 </details>
+
+
+<details>
+    <summary>Dependencies</summary>
+
+    toilet
+    boxes
+    festival
+    kdialog
+</details>
