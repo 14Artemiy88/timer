@@ -84,8 +84,6 @@ timer_tick() {
     START_TIME=$(date '+%s')
     ((FINISH_TIME = "$START_TIME " + "$MIN" * 60 + "$SEC"))
     EL_T=1
-    LEFT_INTERVAL_KEY=0
-    PASSED_INTERVAL_KEY=0
     while [[ EL_T -gt 0 ]]; do
         read -n 2 -s -t 1 -r
         case $REPLY in
