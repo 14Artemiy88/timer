@@ -73,11 +73,11 @@ timer() {
         ((EL_T = "$FINISH_TIME" - "$now"))
         TIMER=$(date -u --date='@'$EL_T '+%H:%M:%S')
         TIMER=${TIMER##00:}
-        echo "$TIMER" >$TIMER_FILE
     else
         ((FINISH_TIME = FINISH_TIME + 1))
         TIMER="PAUSE"
     fi
+    echo "$TIMER" >$TIMER_FILE
 }
 
 timer_tick() {
@@ -88,10 +88,8 @@ timer_tick() {
         read -n 2 -s -t 1 -r
         case $REPLY in
             ' ') ((PAUSED = !"$PAUSED")) ;;
-            '[A') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
-            '[B') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
-            '+') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
-            '-') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
+            '[A'|'+') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
+            '[B'|'-') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
         esac
 
         left_interval
@@ -106,8 +104,8 @@ timer_tick() {
 
 main() {
     if [[ -n $1 && $1 =~ ^-?[0-9]+$ ]]; then
+        local MESSAGE="динь-динь"
         PAUSED=0
-        MESSAGE="динь-динь"
         SHOW_TIMER=true
         MIN=$1
         SEC=0
@@ -121,33 +119,29 @@ main() {
 
         while getopts ":sm:i:I:" flag; do
             case "${flag}" in
-            m) MESSAGE=$OPTARG ;;
-            s) SHOW_TIMER=false ;;
-            i) # time left
-                interval=$OPTARG
-                IFS=',' read -ra interval_array <<<"$interval"
-                unset IFS
-                IFS=$'\n' LEFT_INTERVALS=($(sort --numeric-sort -r <<<"${interval_array[*]}"))
-                unset IFS
-                ;;
-            I) # time passed
-                Interval=$OPTARG
-                IFS=',' read -ra Interval_array <<<"$Interval"
-                unset IFS
-                IFS=$'\n' PASSED_INTERVALS=($(sort --numeric-sort <<<"${Interval_array[*]}"))
-                unset IFS
-                ;;
-            *)
-                Help
-                exit 0
-                ;;
+                m) MESSAGE=$OPTARG ;;
+                s) SHOW_TIMER=false ;;
+                i) # time left
+                    local interval=$OPTARG
+                    IFS=',' read -ra interval_array <<<"$interval"
+                    unset IFS
+                    IFS=$'\n' LEFT_INTERVALS=($(sort --numeric-sort -r <<<"${interval_array[*]}"))
+                    unset IFS
+                    ;;
+                I) # time passed
+                    local Interval=$OPTARG
+                    IFS=',' read -ra Interval_array <<<"$Interval"
+                    unset IFS
+                    IFS=$'\n' PASSED_INTERVALS=($(sort --numeric-sort <<<"${Interval_array[*]}"))
+                    unset IFS
+                    ;;
+                *) Help; exit 0 ;;
             esac
         done
 
         if [[ $SHOW_TIMER = true ]]; then
             tput civis #~ отключаем курсор
         fi
-
 
         timer_tick
         timer_stop $SHOW_TIMER
@@ -163,3 +157,5 @@ main() {
 trap "break; timer_stop; return" SIGINT
 
 main "${@}"
+
+exit 0
