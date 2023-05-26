@@ -39,6 +39,7 @@ timer_tick() {
 main() {
     tput civis #~ отключаем курсор
     timer_tick
+    timer_stop
 }
 
 trap "break; timer_stop; return" SIGINT
