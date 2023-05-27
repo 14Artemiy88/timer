@@ -46,35 +46,35 @@ say() {
 left_interval() {
     if [[
         ${#LEFT_INTERVALS[@]} -ne 0 &&
-        $(( ${LEFT_INTERVALS[$LEFT_INTERVAL_KEY]} * 60 )) == "$EL_T"
+        "${LEFT_INTERVALS[$LEFT_INTERVAL_KEY]} * 60" -eq "EL_T"
     ]] ; then
         say "осталось ${LEFT_INTERVALS[$LEFT_INTERVAL_KEY]}  минут"
         # kdialog --imgbox ~/Images/D/100-1/50.jpg --title "динь-динь"
         unset "LEFT_INTERVALS[LEFT_INTERVAL_KEY]"
-        (( LEFT_INTERVAL_KEY = LEFT_INTERVAL_KEY + 1 ))
+        let "LEFT_INTERVAL_KEY += 1"
     fi
 }
 
 passed_interval() {
     if [[
         ${#PASSED_INTERVALS[@]} -ne 0 &&
-        $(( ${PASSED_INTERVALS[$PASSED_INTERVAL_KEY]} * 60 )) == "$(("$FINISH_TIME" - "$EL_T" - "$START_TIME"))"
+        "${PASSED_INTERVALS[$PASSED_INTERVAL_KEY]} * 60" -eq "FINISH_TIME - EL_T - START_TIME"
     ]] ; then
         say "прошло ${PASSED_INTERVALS[$PASSED_INTERVAL_KEY]} минут"
         # kdialog --imgbox ~/Images/D/100-1/50.jpg --title "динь-динь"
         unset "PASSED_INTERVALS[PASSED_INTERVAL_KEY]"
-        (( PASSED_INTERVAL_KEY = PASSED_INTERVAL_KEY+ 1 ))
+        let "PASSED_INTERVAL_KEY += 1"
     fi
 }
 
 timer() {
     if [[ "$PAUSED" -eq 0 ]]; then
-        now=$(date '+%s')
-        ((EL_T = "$FINISH_TIME" - "$now"))
+        local now=$(date '+%s')
+        let "EL_T = FINISH_TIME - now"
         TIMER=$(date -u --date='@'$EL_T '+%H:%M:%S')
         TIMER=${TIMER##00:}
     else
-        ((FINISH_TIME = FINISH_TIME + 1))
+        let "FINISH_TIME += 1"
         TIMER="PAUSE"
     fi
     echo "$TIMER" >$TIMER_FILE
@@ -82,14 +82,14 @@ timer() {
 
 timer_tick() {
     START_TIME=$(date '+%s')
-    ((FINISH_TIME = "$START_TIME " + "$MIN" * 60 + "$SEC"))
+    let "FINISH_TIME = START_TIME + MIN*60 + SEC"
     EL_T=1
     while [[ EL_T -gt 0 ]]; do
         read -n 2 -s -t 1 -r
         case $REPLY in
-            ' ') ((PAUSED = !"$PAUSED")) ;;
-            '[A'|'+') ((FINISH_TIME = "$FINISH_TIME" + 60)) ;;
-            '[B'|'-') ((FINISH_TIME = "$FINISH_TIME" - 60)) ;;
+            ' ') let "PAUSED = !PAUSED" ;;
+            '[A'|'+') let "FINISH_TIME += 60" ;;
+            '[B'|'-') let "FINISH_TIME -= 60" ;;
         esac
 
         left_interval

@@ -14,7 +14,7 @@ show_timer() {
 
 timer() {
     if [[ "$PAUSED" -eq 0 ]]; then
-        ((TIME = $TIME + 1))
+        let "TIME += 1"
         TIMER=$(date -u --date='@'$TIME '+%H:%M:%S')
         TIMER=${TIMER##00:}
     else
@@ -24,8 +24,6 @@ timer() {
 }
 
 timer_tick() {
-    PAUSED=0
-    TIME=0
     while [[ true ]]; do
         read -n 2 -s -t 1 -r
         case $REPLY in
@@ -37,6 +35,8 @@ timer_tick() {
 }
 
 main() {
+    PAUSED=0
+    TIME=0
     tput civis #~ отключаем курсор
     timer_tick
     timer_stop
