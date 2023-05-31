@@ -6,4 +6,4 @@ need=$(date -d "$1":"$2":00 '+%s')
 (( min = timer_sec/60 ))
 (( sec = timer_sec%60 ))
 
-. timer $min $sec "${@:3}"
+. timer "$min" "$sec" "${@:3}"

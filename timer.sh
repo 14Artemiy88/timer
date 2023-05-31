@@ -9,18 +9,23 @@ Help() {
     # Display Help
     echo "Timer with usage toilet with boxes and festival with kdialog."
     echo
-    echo -e "${YELLOW_COLOR}USAGE${NORMAL_COLOR}:
+    echo -e "${YELLOW_COLOR}USAGE${NORMAL_COLOR}
     timer MIN [SEC] [OPTIONS]"
     echo
-    echo -e "${YELLOW_COLOR}ARGS${NORMAL_COLOR}::
+    echo -e "${YELLOW_COLOR}ARGS${NORMAL_COLOR}
     ${GREEN_COLOR}<MIN>${NORMAL_COLOR}               Minutes
     ${GREEN_COLOR}<SEC>${NORMAL_COLOR}               Seconds [default: 0]"
     echo
-    echo -e "${YELLOW_COLOR}OPTIONS${NORMAL_COLOR}::
+    echo -e "${YELLOW_COLOR}OPTIONS${NORMAL_COLOR}
     ${GREEN_COLOR}-i <min,...>${NORMAL_COLOR}        Notification <min> minutes before the end
     ${GREEN_COLOR}-I <min,...>${NORMAL_COLOR}        Notification <min> minutes after the start
     ${GREEN_COLOR}-m <string> ${NORMAL_COLOR}        Notification message [default: Динь-динь]
     ${GREEN_COLOR}-s${NORMAL_COLOR}                  Silent mode (without bear in terminal) [default: on]"
+    echo
+    echo -e "${YELLOW_COLOR}KEYS${NORMAL_COLOR}
+    ${GREEN_COLOR}Space${NORMAL_COLOR}               Toggle pause
+    ${GREEN_COLOR}Arrow up${NORMAL_COLOR},${GREEN_COLOR} +${NORMAL_COLOR}         Increase for a minute
+    ${GREEN_COLOR}Arrow down${NORMAL_COLOR},${GREEN_COLOR} -${NORMAL_COLOR}       Decrease  for a minute"
 }
 
 timer_stop() {
@@ -51,7 +56,7 @@ left_interval() {
         say "осталось ${LEFT_INTERVALS[$LEFT_INTERVAL_KEY]}  минут"
         # kdialog --imgbox ~/Images/D/100-1/50.jpg --title "динь-динь"
         unset "LEFT_INTERVALS[LEFT_INTERVAL_KEY]"
-        let "LEFT_INTERVAL_KEY += 1"
+        (( LEFT_INTERVAL_KEY += 1 ))
     fi
 }
 
@@ -63,18 +68,19 @@ passed_interval() {
         say "прошло ${PASSED_INTERVALS[$PASSED_INTERVAL_KEY]} минут"
         # kdialog --imgbox ~/Images/D/100-1/50.jpg --title "динь-динь"
         unset "PASSED_INTERVALS[PASSED_INTERVAL_KEY]"
-        let "PASSED_INTERVAL_KEY += 1"
+        (( PASSED_INTERVAL_KEY += 1 ))
     fi
 }
 
 timer() {
     if [[ "$PAUSED" -eq 0 ]]; then
-        local now=$(date '+%s')
-        let "EL_T = FINISH_TIME - now"
-        TIMER=$(date -u --date='@'$EL_T '+%H:%M:%S')
+        local now
+        now=$(date '+%s')
+        (( EL_T = FINISH_TIME - now ))
+        TIMER=$(date -u --date='@'"$EL_T" '+%H:%M:%S')
         TIMER=${TIMER##00:}
     else
-        let "FINISH_TIME += 1"
+        (( FINISH_TIME += 1 ))
         TIMER="PAUSE"
     fi
     echo "$TIMER" >$TIMER_FILE
@@ -82,14 +88,14 @@ timer() {
 
 timer_tick() {
     START_TIME=$(date '+%s')
-    let "FINISH_TIME = START_TIME + MIN*60 + SEC"
+    (( FINISH_TIME = START_TIME + MIN*60 + SEC ))
     EL_T=1
     while [[ EL_T -gt 0 ]]; do
         read -n 2 -s -t 1 -r
         case $REPLY in
-            ' ') let "PAUSED = !PAUSED" ;;
-            '[A'|'+') let "FINISH_TIME += 60" ;;
-            '[B'|'-') let "FINISH_TIME -= 60" ;;
+            ' ')  (( PAUSED = !PAUSED )) ;;
+            '[A'|'+') (( FINISH_TIME += 60 )) ;;
+            '[B'|'-') (( FINISH_TIME -= 60 )) ;;
         esac
 
         left_interval
@@ -125,14 +131,14 @@ main() {
                     local interval=$OPTARG
                     IFS=',' read -ra interval_array <<<"$interval"
                     unset IFS
-                    IFS=$'\n' LEFT_INTERVALS=($(sort --numeric-sort -r <<<"${interval_array[*]}"))
+                    IFS=$'\n' LEFT_INTERVALS="($(sort --numeric-sort -r <<<"${interval_array[*]}"))"
                     unset IFS
                     ;;
                 I) # time passed
                     local Interval=$OPTARG
                     IFS=',' read -ra Interval_array <<<"$Interval"
                     unset IFS
-                    IFS=$'\n' PASSED_INTERVALS=($(sort --numeric-sort <<<"${Interval_array[*]}"))
+                    IFS=$'\n' PASSED_INTERVALS="($(sort --numeric-sort <<<"${Interval_array[*]}"))"
                     unset IFS
                     ;;
                 *) Help; exit 0 ;;

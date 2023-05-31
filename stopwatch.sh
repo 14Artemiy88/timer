@@ -14,8 +14,8 @@ show_timer() {
 
 timer() {
     if [[ "$PAUSED" -eq 0 ]]; then
-        let "TIME += 1"
-        TIMER=$(date -u --date='@'$TIME '+%H:%M:%S')
+        (( TIME += 1 ))
+        TIMER=$(date -u --date='@'"$TIME" '+%H:%M:%S')
         TIMER=${TIMER##00:}
     else
         TIMER="PAUSE"
@@ -24,7 +24,7 @@ timer() {
 }
 
 timer_tick() {
-    while [[ true ]]; do
+    while true ; do
         read -n 2 -s -t 1 -r
         case $REPLY in
             ' ') ((PAUSED = !"$PAUSED")) ;;
