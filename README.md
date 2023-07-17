@@ -40,5 +40,6 @@
     toilet
     boxes
     festival
+    festvox-ru
     kdialog
 </details>
