@@ -88,20 +88,31 @@ timer() {
     else
         (( FINISH_TIME += 1 ))
         TIMER="PAUSE"
+        echo "$FINISH_TIME" >$TIMER_FILE
     fi
-    echo "$TIMER" >$TIMER_FILE
 }
 
 timer_tick() {
     START_TIME=$(date '+%s')
     (( FINISH_TIME = START_TIME + MIN*60 + SEC ))
+    echo "$FINISH_TIME" >"$TIMER_FILE"
     EL_T=1
     while [[ EL_T -gt 0 ]]; do
+        if [ ! -f "$TIMER_FILE" ]; then
+            tput cnorm
+            exit 0
+        else
+            FINISH_TIME=$(cat "$TIMER_FILE")
+        fi
         read -n 2 -s -t 1 -r
         case $REPLY in
             ' ')  (( PAUSED = !PAUSED )) ;;
-            '[A'|'+') (( FINISH_TIME += 60 )) ;;
-            '[B'|'-') (( FINISH_TIME -= 60 )) ;;
+            '[A'|'+')
+                (( FINISH_TIME += 60 ));
+                echo "$FINISH_TIME" >"$TIMER_FILE" ;;
+            '[B'|'-')
+                (( FINISH_TIME -= 60 ));
+                echo "$FINISH_TIME" >"$TIMER_FILE" ;;
         esac
 
         left_interval
@@ -115,55 +126,49 @@ timer_tick() {
 }
 
 main() {
-    if [[ -n $1 && $1 =~ ^-?[0-9]+$ ]]; then
-        local MESSAGE="динь-динь"
-        PAUSED=0
-        SHOW_TIMER=true
-        MIN=$1
-        SEC=0
-
-        if [[ -n $2 && $2 =~ ^-?[0-9]+$ ]]; then
-            SEC=$2
-            shift 2
-        else
-            shift
-        fi
-
-        while getopts ":sm:i:I:" flag; do
-            case "${flag}" in
-                m) MESSAGE=$OPTARG ;;
-                s) SHOW_TIMER=false ;;
-                i) # time left
-                    local interval=$OPTARG
-                    IFS=',' read -ra interval_array <<<"$interval"
-                    unset IFS
-                    IFS=$'\n' LEFT_INTERVALS="($(sort --numeric-sort -r <<<"${interval_array[*]}"))"
-                    unset IFS
-                    ;;
-                I) # time passed
-                    local Interval=$OPTARG
-                    IFS=',' read -ra Interval_array <<<"$Interval"
-                    unset IFS
-                    IFS=$'\n' PASSED_INTERVALS="($(sort --numeric-sort <<<"${Interval_array[*]}"))"
-                    unset IFS
-                    ;;
-                *) Help; exit 0 ;;
-            esac
-        done
-
-        if [[ $SHOW_TIMER = true ]]; then
-            tput civis #~ отключаем курсор
-        fi
-
-        timer_tick
-        timer_stop $SHOW_TIMER
-        say "$MESSAGE"
-    #    echo "$MESSAGE" | festival --tts --language russian >/dev/null
-        kdialog --imgbox ~/Images/D/100-1/50.jpg --title "$MESSAGE"
-    else
+    if ! [[ -n $1 && $1 =~ ^-?[0-9]+$ ]]; then
         Help
         exit 0
     fi
+
+    local MESSAGE="динь-динь"
+    PAUSED=0
+    SHOW_TIMER=true
+    MIN=$1
+    SEC=0
+
+    if [[ -n $2 && $2 =~ ^-?[0-9]+$ ]]; then
+        SEC=$2
+        shift 2
+    else
+        shift
+    fi
+
+    while getopts ":sm:i:I:" flag; do
+        case "${flag}" in
+            m) MESSAGE="${OPTARG}" ;;
+            s) SHOW_TIMER=false ;;
+            i)
+                IFS=',' read -ra interval_array <<<"${OPTARG}"
+                LEFT_INTERVALS="($(sort -r <<<"${interval_array[*]}"))"
+                ;;
+            I)
+                IFS=',' read -ra Interval_array <<<"${OPTARG}"
+                PASSED_INTERVALS="($(sort <<<"${Interval_array[*]}"))"
+                ;;
+            *) Help; exit 0 ;;
+        esac
+    done
+
+    if [[ $SHOW_TIMER = true ]]; then
+        tput civis #~ отключаем курсор
+    fi
+
+    timer_tick
+    timer_stop $SHOW_TIMER
+    say "$MESSAGE"
+#    echo "$MESSAGE" | festival --tts --language russian >/dev/null
+    kdialog --imgbox ~/Images/D/100-1/50.jpg --title "$MESSAGE"
 }
 
 trap "break; timer_stop; return" SIGINT
