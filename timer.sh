@@ -4,6 +4,7 @@ declare -r NORMAL_COLOR="\e[0;39m"
 declare -r GREEN_COLOR="\e[0;32m"
 declare -r YELLOW_COLOR="\e[0;33m"
 declare -r TIMER_PATH="/run/user/1000/timer"
+declare -r ICON="/usr/share/icons/breeze-dark/apps/22/org.kde.ktimetracker.svg"
 
 if [ ! -d $TIMER_PATH ]; then
     mkdir $TIMER_PATH
@@ -122,6 +123,12 @@ timer_tick() {
         if [ "$SHOW_TIMER" = true ]; then
             show_timer "${TIMER##00:}"
         fi
+
+		
+		(( percent = 100 * EL_T / (MIN*60 + SEC) ))
+		if [[ $DE = "hyprland" ]]; then
+        	dunstify -a "Timer" -r $START_TIME -h int:value:"$percent" -i "$ICON" "$MESSAGE" -u low
+        fi
     done
 }
 
@@ -166,9 +173,15 @@ main() {
 
     timer_tick
     timer_stop $SHOW_TIMER
-    say "$MESSAGE"
-#    echo "$MESSAGE" | festival --tts --language russian >/dev/null
-    kdialog --imgbox ~/Images/D/100-1/50.jpg --title "$MESSAGE"
+	if [[ $DE = "hyprland" ]]; then
+		paplay --server=/run/user/1000/pulse/native /usr/share/sounds/freedesktop/stereo/complete.oga > /dev/null 2>&1
+		dunstify -a "Timerdone" -r $START_TIME -i "$ICON" "$MESSAGE" -u critical
+	else
+		say "$MESSAGE"
+		echo "$MESSAGE" | festival --tts --language russian >/dev/null
+		kdialog --imgbox ~/Images/D/100-1/50.jpg --title "$MESSAGE"
+	fi
+
 }
 
 trap "break; timer_stop; return" SIGINT
